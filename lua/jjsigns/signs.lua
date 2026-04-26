@@ -103,23 +103,25 @@ function M.place_signs(bufnr, signs)
   end
 end
 
---- Update signs for a buffer
+--- Update signs for a buffer using cached base lines.
 --- @param bufnr integer Buffer number
---- @param filepath string Absolute file path
---- @param repo_root string Repository root path
-function M.update_buffer_signs(bufnr, filepath, repo_root)
+--- @param base_lines string[] Lines of the file at the base revision (empty for added files)
+function M.update_buffer_signs(bufnr, base_lines)
   if not api.nvim_buf_is_valid(bufnr) then
     return
   end
 
-  -- Skip if buffer is not normal file
-  local buftype = vim.bo[bufnr].buftype
-  if buftype ~= '' then
+  if vim.bo[bufnr].buftype ~= '' then
     return
   end
 
+  if not base_lines then
+    return
+  end
+
+  local current_lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local diff = require('jjsigns.diff')
-  local hunks = diff.get_file_hunks(filepath, repo_root, config.config.base)
+  local hunks = diff.compute_hunks(base_lines, current_lines)
   local signs = diff.hunks_to_signs(hunks)
 
   M.place_signs(bufnr, signs)
@@ -165,10 +167,7 @@ function M.refresh_all_buffers()
 
   for bufnr in pairs(buffer_data) do
     if api.nvim_buf_is_valid(bufnr) then
-      local filepath = api.nvim_buf_get_name(bufnr)
-      if filepath ~= '' then
-        attach.update_buffer(bufnr, filepath)
-      end
+      attach.update_buffer(bufnr)
     end
   end
 end

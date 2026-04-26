@@ -59,26 +59,17 @@ if not success then
 end
 print('✅ Successfully loaded diff module')
 
--- Test diff parsing with sample data
-local sample_diff = {
-  'diff --git a/test.txt b/test.txt',
-  'index 1234567..abcdefg 100644',
-  '--- a/test.txt',
-  '+++ b/test.txt',
-  '@@ -1,3 +1,4 @@',
-  ' line 1',
-  '+line 1.5',
-  ' line 2',
-  ' line 3',
-}
+-- Test diff computation with sample data
+local base_lines = { 'line 1', 'line 2', 'line 3' }
+local current_lines = { 'line 1', 'line 1.5', 'line 2', 'line 3' }
 
-local hunks = diff.parse_diff(sample_diff)
+local hunks = diff.compute_hunks(base_lines, current_lines)
 if #hunks > 0 then
-  print('✅ Diff parsing works - found ' .. #hunks .. ' hunk(s)')
+  print('✅ Diff computation works - found ' .. #hunks .. ' hunk(s)')
   local signs = diff.hunks_to_signs(hunks)
   print('✅ Sign conversion works - generated ' .. #signs .. ' sign(s)')
 else
-  print('⚠️  Diff parsing returned no hunks')
+  print('⚠️  Diff computation returned no hunks')
 end
 
 -- Test signs module

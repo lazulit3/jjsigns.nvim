@@ -62,6 +62,17 @@ function M.setup(opts)
   end
 end
 
+--- Re-read base content for the current buffer (or all attached buffers).
+--- Use after running jj operations outside Neovim that move the base revision.
+local function refresh_command()
+  local bufnr = api.nvim_get_current_buf()
+  if attach.is_attached(bufnr) then
+    attach.refresh_buffer(bufnr)
+  else
+    attach.refresh_all()
+  end
+end
+
 --- Run a JjSigns command
 --- @param params table Command parameters
 function M.run_command(params)
@@ -72,6 +83,7 @@ function M.run_command(params)
     toggle = M.toggle,
     disable = M.disable,
     enable = M.enable,
+    refresh = refresh_command,
     toggle_signs = signs.toggle_signcolumn,
     toggle_numhl = signs.toggle_numhl,
     toggle_linehl = signs.toggle_linehl,
@@ -90,8 +102,16 @@ end
 --- @param line string
 --- @return string[]
 function M.complete(arglead, line)
-  local commands =
-    { 'setup', 'toggle', 'disable', 'enable', 'toggle_signs', 'toggle_numhl', 'toggle_linehl' }
+  local commands = {
+    'setup',
+    'toggle',
+    'disable',
+    'enable',
+    'refresh',
+    'toggle_signs',
+    'toggle_numhl',
+    'toggle_linehl',
+  }
   return vim.tbl_filter(function(cmd)
     return vim.startswith(cmd, arglead)
   end, commands)
